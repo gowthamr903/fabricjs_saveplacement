@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link href="style.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.5/fabric.min.js"></script>
+</head>
+
+<body>
+
+
+    <div id="canvas-wrapper" class="editor-area">
+        <div class="canvas-bg-wrapper">
+
+            <canvas width="360" height="360" id="c"></canvas>
+        </div>
+    </div>
+
+    <div class="controls">
+
+
+        <p style="border:1px solid #e7e7"><input type="file" id="imageLoader"> Upload Image</p>
+        <a href="#" id="saveplacement" download="data.json"> Download Overlay Image</a>
+        <p> <button onClick="clearoverlay()">Clear Overlay Image</button></p>
+
+        <p style="border:1px solid #e7e7"><input type="file" id="jsonLoader"> pick Json File</p>
+    </div>
+
+    <script>
+
+        var canvas = new fabric.Canvas('c');
+
+
+        loadFullImage();
+
+        function loadFullImage() {
+            var src = "images/Full_Image.png";
+            fabric.util.loadImage(src, function (img) {
+
+                var oImg = new fabric.Image(img);
+                console.log(img.src)
+
+                oImg.set({
+                    left: 0,
+                    top: 0,
+                    width: 350,
+                    height: 350,
+                    // originX: 'center',
+                    // originY: 'center',
+                    transparentCorners: false,
+                    name: "background"
+                });
+
+
+                canvas.add(oImg);
+
+                oImg.set({
+                    left: (canvas.width / 2) - ((oImg.width * oImg.scaleX) / 2)
+                });
+
+                oImg.selectable = false;
+                canvas.renderAll();
+            });
+        }
+
+
+
+        //loadOverlayImage();
+
+        function loadOverlayImage() {
+            var src = "images/overlay_image.png";
+            fabric.util.loadImage(src, function (img) {
+
+                var oImg = new fabric.Image(img);
+                console.log(img.src)
+
+                oImg.set({
+                    left: 0,
+                    top: 0,
+                    width: img.width,
+                    height: img.height,
+                    // originX: 'center',
+                    // originY: 'center',
+                    transparentCorners: false,
+                    name: "overlay"
+                });
+
+
+                canvas.add(oImg);
+
+                oImg.set({
+                    left: (canvas.width / 2) - ((oImg.width * oImg.scaleX) / 2)
+                });
+                canvas.renderAll();
+            });
+        }
+
+
+        function clearoverlay() {
+
+            var allObjects = canvas.getObjects();
+            allObjects.forEach(function (obj) {
+
+                if (obj.name != "background") {
+
+                    obj.remove();
+
+                }
+
+            });
+
+        }
+
+        document.getElementById('saveplacement').addEventListener('click', function (ev) {
+
+
+            var allObjects = canvas.getObjects();
+            allObjects.forEach(function (obj) {
+
+                if (obj.name != "background") {
+
+
+                    // ev.target.href = obj.toDataURL();
+                    // ev.target.download = "overlay_image.png";
+                    var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(canvas.toJSON()));
+                    ev.target.href = "data:" + data;
+                    //   var json = canvas.toJSON();
+                    //    console.log(JSON.stringify(json));
+
+
+                }
+
+            });
+
+        }, false);
+
+
+
+
+
+        document.getElementById('jsonLoader').onchange = function (evt) {
+            var files = evt.target.files;
+            console.log(files);
+            if (files.length <= 0) {
+                return false;
+            }
+
+            var fr = new FileReader();
+
+            fr.onload = function (e) {
+                console.log(e);
+                var result = JSON.parse(e.target.result);
+                // var formatted = JSON.stringify(result, null, 2);
+                // document.getElementById('result').value = formatted;
+
+
+                var obj = result.objects[1];
+                var imgsrc = result.objects[1].src;
+
+                fabric.util.loadImage(imgsrc, function (img) {
+
+                    var oImg = new fabric.Image(img);
+                    console.log(img.src)
+
+                    oImg.set({
+                        left: obj.left,
+                        top: obj.top,
+                        width: obj.width,
+                        height: obj.height,
+                        // originX: 'center',
+                        // originY: 'center',
+                        scaleX: obj.scaleX,
+                        scaleY: obj.scaleY,
+                        transparentCorners: false,
+                        name: "overlay"
+                    });
+
+
+                    canvas.add(oImg);
+
+                    // oImg.set({
+                    //     left: (canvas.width / 2) - ((oImg.width * oImg.scaleX) / 2)
+                    // });
+                    canvas.renderAll();
+                });
+            }
+
+            fr.readAsText(files.item(0));
+        };
+
+
+        document.getElementById('imageLoader').onchange = function (evt) {
+            var files = evt.target.files;
+            console.log(files);
+            if (files.length <= 0) {
+                return false;
+            }
+
+            var fr = new FileReader();
+
+            fr.onload = function (e) {
+
+                fabric.util.loadImage(e.target.result, function (img) {
+
+                    var oImg = new fabric.Image(img);
+                    console.log(img.src)
+
+                    oImg.set({
+                        left: 0,
+                        top: 0,
+                        width: 350,
+                        height: 350,
+                        // originX: 'center',
+                        // originY: 'center',
+                        transparentCorners: false,
+                        name: "overlay"
+                    });
+
+
+                    canvas.add(oImg);
+
+                    oImg.set({
+                        left: (canvas.width / 2) - ((oImg.width * oImg.scaleX) / 2)
+                    });
+                    canvas.renderAll();
+                });
+
+            }
+
+            fr.readAsDataURL(files.item(0));
+        };
+
+
+
+
+    </script>
+
+
+</body>
+
+</html>
